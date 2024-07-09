@@ -1,33 +1,40 @@
-import { Injectable } from '@angular/core';
-import {WeatherService} from "./weather.service";
+import {Injectable, signal, WritableSignal} from '@angular/core';
+import {Store} from './store';
 
-export const LOCATIONS : string = "locations";
+export const LOCATIONS = 'locations';
+
+export enum LocationActions {
+    Add,
+    Remove
+}
 
 @Injectable()
 export class LocationService {
 
-  locations : string[] = [];
+    readonly locations: Store<string[], LocationActions>;
 
-  constructor(private weatherService : WeatherService) {
-    let locString = localStorage.getItem(LOCATIONS);
-    if (locString)
-      this.locations = JSON.parse(locString);
-    for (let loc of this.locations)
-      this.weatherService.addCurrentConditions(loc);
-  }
-
-  addLocation(zipcode : string) {
-    this.locations.push(zipcode);
-    localStorage.setItem(LOCATIONS, JSON.stringify(this.locations));
-    this.weatherService.addCurrentConditions(zipcode);
-  }
-
-  removeLocation(zipcode : string) {
-    let index = this.locations.indexOf(zipcode);
-    if (index !== -1){
-      this.locations.splice(index, 1);
-      localStorage.setItem(LOCATIONS, JSON.stringify(this.locations));
-      this.weatherService.removeCurrentConditions(zipcode);
+    constructor() {
+        const locString = localStorage.getItem(LOCATIONS);
+        let state: string[] = [];
+        if (locString) {
+            state = JSON.parse(locString);
+        }
+        this.locations = new Store(state);
     }
-  }
+
+    addLocation(zipcode: string) {
+        this.locations.update(locations => [...locations, zipcode], LocationActions.Add);
+        localStorage.setItem(LOCATIONS, JSON.stringify(this.locations.getValue()));
+    }
+
+    removeLocation(zipcode: string) {
+        const index = this.locations.getValue().indexOf(zipcode);
+        if (index !== -1) {
+            this.locations.update(locations => {
+                locations.splice(index, 1);
+                return [...locations]
+            }, LocationActions.Remove);
+            localStorage.setItem(LOCATIONS, JSON.stringify(this.locations.getValue()));
+        }
+    }
 }
