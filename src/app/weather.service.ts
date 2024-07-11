@@ -6,6 +6,13 @@ import {CurrentConditions} from './current-conditions/current-conditions.type';
 import {ConditionsAndZip} from './conditions-and-zip.type';
 import {Forecast} from './forecasts-list/forecast.type';
 import {LocationActions, LocationService} from './location.service';
+import {distinctUntilChanged, pairwise} from 'rxjs/operators';
+import {Store} from './store';
+
+export enum WeatherActions {
+    Add,
+    Remove
+}
 
 @Injectable()
 export class WeatherService {
@@ -13,22 +20,24 @@ export class WeatherService {
     static URL = 'https://api.openweathermap.org/data/2.5';
     static APPID = '5a4b2d457ecbef9eb2a71e480b947604';
     static ICON_URL = 'https://raw.githubusercontent.com/udacity/Sunshine-Version-2/sunshine_master/app/src/main/res/drawable-hdpi/';
-    private currentConditions = signal<ConditionsAndZip[]>([]);
+    readonly currentConditions = new Store<ConditionsAndZip[], WeatherActions>([]);
 
     constructor(private http: HttpClient, private locationService: LocationService) {
         this.locationService.locations.getValue().forEach(zipCode => {
             this.addCurrentConditions(zipCode);
         });
 
-        this.locationService.locations.getUpdates().subscribe(({action, state}) => {
-            switch (action) {
+        this.locationService.locations.getUpdates().subscribe(([prev, curr]) => {
+            switch (curr.action) {
                 case LocationActions.Add:
-                    this.addCurrentConditions(state[state.length - 1]);
+                    this.addCurrentConditions(curr.state[curr.state.length - 1]);
                     break;
                 case LocationActions.Remove:
-                    this.removeCurrentConditions(state);
+                    const removedLocation = prev.state.find(oldState => !curr.state.includes(oldState));
+                    this.removeCurrentConditions(removedLocation);
                     break;
             }
+            return true;
         });
     }
 
@@ -37,21 +46,20 @@ export class WeatherService {
         // Here we make a request to get the current conditions data from the API.
         // Note the use of backticks and an expression to insert the zipcode
         this.http.get<CurrentConditions>(`${WeatherService.URL}/weather?zip=${zipcode},us&units=imperial&APPID=${WeatherService.APPID}`)
-            .subscribe(data => this.currentConditions.update(conditions => [...conditions, {zip: zipcode, data}]));
+            .subscribe(data => this.currentConditions.update(conditions => [...conditions, {zip: zipcode, data}], WeatherActions.Add));
     }
 
-    removeCurrentConditions(zipcodes: string[]) {
+    removeCurrentConditions(zipcode: string) {
         this.currentConditions.update(conditions => {
-            return conditions.filter(c => zipcodes.includes(c.zip));
-        })
-    }
-
-    getCurrentConditions(): Signal<ConditionsAndZip[]> {
-        return this.currentConditions.asReadonly();
+            const index = conditions.findIndex(t => t.zip === zipcode);
+            conditions.splice(index, 1);
+            return [...conditions];
+        }, WeatherActions.Remove)
     }
 
     getForecast(zipcode: string): Observable<Forecast> {
-        // Here we make a request to get the forecast data from the API. Note the use of backticks and an expression to insert the zipcode
+        // Here we make a request to get the forecast data from the API.
+        // Note the use of backticks and an expression to insert the zipcode
         return this.http.get<Forecast>(`${WeatherService.URL}/forecast/daily?zip=${zipcode},us&units=imperial&cnt=5&APPID=${WeatherService.APPID}`);
 
     }

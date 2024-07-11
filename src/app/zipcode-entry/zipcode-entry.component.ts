@@ -11,7 +11,9 @@ export class ZipcodeEntryComponent {
     }
 
     addLocation(zipcode: string) {
-        this.service.addLocation(zipcode);
+        if (zipcode !== '') {
+            this.service.addLocation(zipcode);
+        }
     }
 
 }
