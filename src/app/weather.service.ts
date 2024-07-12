@@ -49,7 +49,7 @@ export class WeatherService {
         // Here we make a request to get the current conditions data from the API.
         // Note the use of backticks and an expression to insert the zipcode
         const url = `${WeatherService.URL}/weather?zip=${zipcode},us&units=imperial&APPID=${WeatherService.APPID}`;
-        this.cacheService.getCachedData<CurrentConditions>(url, this.http.get<CurrentConditions>(url)).subscribe(data => {
+        this.cacheService.getCachedDataObs<CurrentConditions>(url, this.http.get<CurrentConditions>(url)).subscribe(data => {
             this.currentConditions.update(conditions => [...conditions, {
                 zip: zipcode,
                 data
@@ -69,7 +69,7 @@ export class WeatherService {
         // Here we make a request to get the forecast data from the API.
         // Note the use of backticks and an expression to insert the zipcode
         const url = `${WeatherService.URL}/forecast/daily?zip=${zipcode},us&units=imperial&cnt=5&APPID=${WeatherService.APPID}`;
-        return this.cacheService.getCachedData<Forecast>(url, this.http.get<Forecast>(url));
+        return this.cacheService.getCachedDataObs<Forecast>(url, this.http.get<Forecast>(url));
     }
 
     getWeatherIcon(id): string {

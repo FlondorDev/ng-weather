@@ -18,7 +18,20 @@ export class CacheService {
     constructor(@Inject(CACHETIMER) private cacheTimer: number) {
     }
 
-    getCachedData<T>(key: string, obs: Observable<T>): Observable<T> {
+    getCachedData<T>(key: string, initialValue: T): T {
+        const cachedData: CachedData<T> | null = JSON.parse(localStorage.getItem(key));
+        if (cachedData) {
+            const now = Date.now();
+            if (cachedData.savedAt + this.cacheTimer > now) {
+                return cachedData.data;
+            }
+            localStorage.removeItem(key);
+        }
+        this.setCachedData(key, initialValue);
+        return initialValue;
+    }
+
+    getCachedDataObs<T>(key: string, initialValue: Observable<T>): Observable<T> {
         const cachedData: CachedData<T> | null = JSON.parse(localStorage.getItem(key));
         if (cachedData) {
             const now = Date.now();
@@ -27,7 +40,7 @@ export class CacheService {
             }
             localStorage.removeItem(key);
         }
-        return obs.pipe(tap(value => this.setCachedData(key, value)));
+        return initialValue.pipe(tap(value => this.setCachedData(key, value)));
     }
 
     private setCachedData<T>(key: string, value: T) {
