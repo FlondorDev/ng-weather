@@ -1,0 +1,36 @@
+.close {
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.container-padding {
+    padding: 10px;
+}
+
+.border {
+    border: 1px solid black;
+}
+
+.selected {
+    border-bottom: 1px solid white;
+}
+
+.border-li {
+    position: relative;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    top: 1px;
+}
+
+ul {
+    list-style-type: none;
+    display: flex;
+    padding: 0;
+    margin: 0;
+    gap: 5px
+}
+
+li {
+    padding: 10px;
+}

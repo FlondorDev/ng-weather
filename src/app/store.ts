@@ -1,5 +1,4 @@
 import {signal, WritableSignal} from '@angular/core';
-import {Subject} from 'rxjs';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {pairwise} from 'rxjs/operators';
 

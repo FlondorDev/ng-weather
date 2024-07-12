@@ -1,9 +1,8 @@
-import {Component, effect, inject, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, effect, inject, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {WeatherActions, WeatherService} from '../weather.service';
 import {LocationService} from '../location.service';
 import {Router} from '@angular/router';
-import {TabComponent, TabTemplate} from '../tab/tab.component';
-import {pairwise} from 'rxjs/operators';
+import {TabsComponent, TabTemplate} from '../tabs/tabs.component';
 import {ConditionsAndZip} from '../conditions-and-zip.type';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
@@ -14,7 +13,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 })
 export class CurrentConditionsComponent implements OnInit {
 
-    @ViewChild(TabComponent, {static: true}) tabComponent: TabComponent;
+    @ViewChild(TabsComponent, {static: true}) tabComponent: TabsComponent;
     @ViewChild('locationTemplate', {static: true}) locationTemplate: TemplateRef<any>;
     protected weatherService = inject(WeatherService);
     private router = inject(Router);
@@ -27,20 +26,17 @@ export class CurrentConditionsComponent implements OnInit {
                 switch (current.action) {
                     case WeatherActions.Add:
                         const location = current.state[current.state.length - 1];
-                        const tabTemplate = this.createAndAddTemplate(location);
-                        this.tabComponent.selectTemplate(tabTemplate);
+                        this.createAndAddTemplate(location);
                         break;
                     default:
+                        break;
                 }
             });
     }
 
     ngOnInit() {
         this.weatherService.currentConditions.getValue().forEach((location, i) => {
-            const tabTemplate = this.createAndAddTemplate(location);
-            if (i === 0) {
-                this.tabComponent.selectTemplate(tabTemplate);
-            }
+            this.createAndAddTemplate(location);
         });
     }
 

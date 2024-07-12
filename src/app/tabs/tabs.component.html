@@ -1,0 +1,14 @@
+@if(templates().length) {
+    <ul>
+        @for (template of templates(); track template) {
+            <li class="border-li" [class.selected]="template === selectedTemplate()"
+                (click)="selectTemplate(template)">{{ template.title }}
+                <span class="close" (click)="deleteTemplate(template)">&times;</span>
+            </li>
+        }
+    </ul>
+    <div class="border container-padding">
+        <div #container></div>
+    </div>
+}
+

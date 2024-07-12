@@ -1,5 +1,5 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
+import {InjectionToken, NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 
 import {AppComponent} from './app.component';
@@ -14,12 +14,13 @@ import {routing} from './app.routing';
 import {HttpClientModule} from '@angular/common/http';
 import {ServiceWorkerModule} from '@angular/service-worker';
 import {environment} from '../environments/environment';
-import {TabComponent} from './tab/tab.component';
+import {TabsComponent} from './tabs/tabs.component';
+import {CACHETIMER} from './cache.service';
 
 @NgModule({
     declarations: [
         AppComponent,
-        TabComponent,
+        TabsComponent,
         ZipcodeEntryComponent,
         ForecastsListComponent,
         CurrentConditionsComponent,
@@ -33,7 +34,10 @@ import {TabComponent} from './tab/tab.component';
         routing,
         ServiceWorkerModule.register('/ngsw-worker.js', {enabled: environment.production})
     ],
-    providers: [LocationService, WeatherService],
+    providers: [LocationService, WeatherService, {
+        provide: CACHETIMER,
+        useValue: 7_200_000, // 2 hours in ms
+    }],
     bootstrap: [AppComponent]
 })
 export class AppModule {

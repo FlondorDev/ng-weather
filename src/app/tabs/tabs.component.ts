@@ -1,4 +1,16 @@
-import {Component, EventEmitter, Output, signal, TemplateRef, ViewChild, ViewContainerRef, WritableSignal} from '@angular/core';
+import {
+    AfterViewInit,
+    Component,
+    EventEmitter, OnDestroy,
+    Output, QueryList,
+    signal,
+    TemplateRef,
+    ViewChild,
+    ViewChildren,
+    ViewContainerRef,
+    WritableSignal
+} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 export interface TabTemplate {
     title: string,
@@ -7,15 +19,15 @@ export interface TabTemplate {
 }
 
 @Component({
-    selector: 'app-tab',
-    templateUrl: './tab.component.html',
-    styleUrls: ['./tab.component.css']
+    selector: 'app-tabs',
+    templateUrl: './tabs.component.html',
+    styleUrls: ['./tabs.component.css']
 })
-export class TabComponent {
+export class TabsComponent implements AfterViewInit {
 
     private _selectedTemplate: WritableSignal<TabTemplate | null> = signal(null);
     private _templates: WritableSignal<TabTemplate[]> = signal([]);
-    @ViewChild('container', {static: true, read: ViewContainerRef}) private containerRef: ViewContainerRef;
+    @ViewChildren('container', {read: ViewContainerRef}) private containerRef: QueryList<ViewContainerRef>;
     @Output() deleteTabEvent: EventEmitter<TabTemplate> = new EventEmitter();
 
     get selectedTemplate() {
@@ -29,6 +41,17 @@ export class TabComponent {
     constructor() {
     }
 
+    ngAfterViewInit() {
+        this.selectFirstTemplate();
+        this.containerRef.changes.subscribe(() => {
+            this.selectFirstTemplate();
+        });
+    }
+
+    private selectFirstTemplate() {
+        this.selectTemplate(this.templates()[0]);
+    }
+
     addTemplate(tabTemplate: TabTemplate) {
         this._templates.update(templates => [...templates, tabTemplate]);
     }
@@ -39,10 +62,11 @@ export class TabComponent {
             if (index !== -1) {
                 templates.splice(index, 1);
                 if (this.selectedTemplate() === tabTemplate) {
+                    this._selectedTemplate.set(null);
                     if (templates.length > 0) {
-                        this.selectTemplate(templates[templates.length - 1]);
+                        this.selectTemplate(templates[0]);
                     } else {
-                        this.containerRef.clear();
+                        this.containerRef.first.clear();
                     }
                 }
                 this.deleteTabEvent.emit(tabTemplate);
@@ -52,14 +76,14 @@ export class TabComponent {
     }
 
     clearTemplates() {
-        this.containerRef.clear();
+        this.containerRef.first?.clear();
         this._templates.set([]);
     }
 
     selectTemplate(tabTemplate: TabTemplate) {
         this._selectedTemplate.set(tabTemplate);
-        this.containerRef.clear();
-        this.containerRef.createEmbeddedView(tabTemplate.template, {$implicit: tabTemplate.context});
+        this.containerRef.first?.clear();
+        this.containerRef.first?.createEmbeddedView(tabTemplate.template, {$implicit: tabTemplate.context});
     }
 
 }

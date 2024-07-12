@@ -1,4 +1,4 @@
-<app-tab (deleteTabEvent)="locationService.removeLocation($event.context.zip)"></app-tab>
+<app-tabs (deleteTabEvent)="locationService.removeLocation($event.context.zip)"></app-tabs>
 
 <ng-template #locationTemplate let-location>
     <div class="well flex" (click)="showForecast(location.zip)">

@@ -1,8 +1,0 @@
-<div>
-    <button class="btn" [ngClass]="template === selectedTemplate() ? 'btn-success' : 'btn-primary'"
-            *ngFor="let template of templates()"
-            (click)="selectTemplate(template)">{{ template.title }}
-        <span class="close" (click)="deleteTemplate(template)">&times;</span>
-    </button>
-</div>
-<div #container></div>
