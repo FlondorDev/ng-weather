@@ -1,14 +1,15 @@
-@if(templates().length) {
+@if (templates().length) {
     <ul>
-        @for (template of templates(); track template) {
+        @for (template of templates(); track template; ) {
             <li class="border-li" [class.selected]="template === selectedTemplate()"
-                (click)="selectTemplate(template)">{{ template.title }}
-                <span class="close" (click)="deleteTemplate(template)">&times;</span>
+                (click)="selectTemplate($index)">{{ template.title }}
+                <span class="close" (click)="deleteTemplate($index)">&times;</span>
             </li>
         }
     </ul>
     <div class="border container-padding">
-        <div #container></div>
+        <ng-container *ngIf="selectedTemplate() as tabTemplate" [ngTemplateOutlet]="tabTemplate.template"
+                      [ngTemplateOutletContext]="{$implicit: tabTemplate.context}"></ng-container>
     </div>
 }
 

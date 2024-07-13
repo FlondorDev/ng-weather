@@ -23,11 +23,10 @@ export interface TabTemplate {
     templateUrl: './tabs.component.html',
     styleUrls: ['./tabs.component.css']
 })
-export class TabsComponent implements AfterViewInit {
+export class TabsComponent {
 
     private _selectedTemplate: WritableSignal<TabTemplate | null> = signal(null);
     private _templates: WritableSignal<TabTemplate[]> = signal([]);
-    @ViewChildren('container', {read: ViewContainerRef}) private containerRef: QueryList<ViewContainerRef>;
     @Output() deleteTabEvent: EventEmitter<TabTemplate> = new EventEmitter();
 
     get selectedTemplate() {
@@ -41,49 +40,36 @@ export class TabsComponent implements AfterViewInit {
     constructor() {
     }
 
-    ngAfterViewInit() {
-        this.selectFirstTemplate();
-        this.containerRef.changes.subscribe(() => {
-            this.selectFirstTemplate();
-        });
-    }
-
     private selectFirstTemplate() {
-        this.selectTemplate(this.templates()[0]);
+        this.selectTemplate(0);
     }
 
     addTemplate(tabTemplate: TabTemplate) {
         this._templates.update(templates => [...templates, tabTemplate]);
+        if (!this.selectedTemplate()) {
+            this.selectFirstTemplate();
+        }
     }
 
-    deleteTemplate(tabTemplate: TabTemplate) {
+    deleteTemplate(index: number) {
         this._templates.update(templates => {
-            const index = templates.findIndex(t => t === tabTemplate);
-            if (index !== -1) {
-                templates.splice(index, 1);
-                if (this.selectedTemplate() === tabTemplate) {
-                    this._selectedTemplate.set(null);
-                    if (templates.length > 0) {
-                        this.selectTemplate(templates[0]);
-                    } else {
-                        this.containerRef.first.clear();
-                    }
-                }
-                this.deleteTabEvent.emit(tabTemplate);
+            const deleted = templates.splice(index, 1).pop();
+            if (this.selectedTemplate() === deleted) {
+                this._selectedTemplate.set(null);
+                this.selectFirstTemplate();
             }
-            return templates;
+            this.deleteTabEvent.emit(deleted);
+            return [...templates];
         });
     }
 
     clearTemplates() {
-        this.containerRef.first?.clear();
         this._templates.set([]);
+        this._selectedTemplate.set(null);
     }
 
-    selectTemplate(tabTemplate: TabTemplate) {
-        this._selectedTemplate.set(tabTemplate);
-        this.containerRef.first?.clear();
-        this.containerRef.first?.createEmbeddedView(tabTemplate.template, {$implicit: tabTemplate.context});
+    selectTemplate(index: number) {
+        this._selectedTemplate.set(this.templates()[index]);
     }
 
 }

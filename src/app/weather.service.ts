@@ -36,11 +36,16 @@ export class WeatherService {
                     this.addCurrentConditions(curr.state[curr.state.length - 1]);
                     break;
                 case LocationActions.Remove:
-                    const removedLocation = prev.state.find(oldState => !curr.state.includes(oldState));
+                    let removedLocation = '';
+                    for (let i = 0; i < prev.state.length; i++) {
+                        if (prev.state[i] !== curr.state[i]) {
+                            removedLocation = prev.state[i];
+                            break;
+                        }
+                    }
                     this.removeCurrentConditions(removedLocation);
                     break;
             }
-            return true;
         });
     }
 
@@ -60,7 +65,9 @@ export class WeatherService {
     removeCurrentConditions(zipcode: string) {
         this.currentConditions.update(conditions => {
             const index = conditions.findIndex(t => t.zip === zipcode);
-            conditions.splice(index, 1);
+            if (index !== -1) {
+                conditions.splice(index, 1);
+            }
             return [...conditions];
         }, WeatherActions.Remove)
     }
