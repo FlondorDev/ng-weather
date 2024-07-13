@@ -1,4 +1,4 @@
-import {Inject, Injectable, InjectionToken} from '@angular/core';
+import {Inject, Injectable, InjectionToken, signal} from '@angular/core';
 import {Observable, of} from 'rxjs';
 
 import {tap} from 'rxjs/operators';
@@ -15,14 +15,24 @@ export const CACHETIMER = new InjectionToken<number>('cache.timer.ms');
 })
 export class CacheService {
 
-    constructor(@Inject(CACHETIMER) private cacheTimer: number) {
+    private _cacheTimer = signal(2 * 60 * 60 * 1000);
+
+    constructor() {
+    }
+
+    get cacheTimer() {
+        return this._cacheTimer.asReadonly();
+    }
+
+    updateCacheTimer(time: number): void {
+        this._cacheTimer.set(time);
     }
 
     getCachedData<T>(key: string, initialValue: T): T {
         const cachedData: CachedData<T> | null = JSON.parse(localStorage.getItem(key));
         if (cachedData) {
             const now = Date.now();
-            if (cachedData.savedAt + this.cacheTimer > now) {
+            if (cachedData.savedAt + this.cacheTimer() > now) {
                 return cachedData.data;
             }
             localStorage.removeItem(key);
@@ -35,7 +45,7 @@ export class CacheService {
         const cachedData: CachedData<T> | null = JSON.parse(localStorage.getItem(key));
         if (cachedData) {
             const now = Date.now();
-            if (cachedData.savedAt + this.cacheTimer > now) {
+            if (cachedData.savedAt + this.cacheTimer() > now) {
                 return of(cachedData.data);
             }
             localStorage.removeItem(key);

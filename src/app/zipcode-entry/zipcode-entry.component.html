@@ -1,8 +1,11 @@
 <div class="well">
-  <h2>Enter a zipcode:</h2>
-  <input type="text" #zipcode placeholder="Zipcode" class="form-control">
-  <br>
-  <button class="btn btn-primary" (click)="addLocation(zipcode.value)" >
-    Add location
-  </button>
+    <h2>Enter a zipcode:</h2>
+    <input type="text" #zipcode placeholder="Zipcode" class="form-control">
+    <br>
+    <button class="btn btn-primary" (click)="addLocation(zipcode.value)">
+        Add location
+    </button>
+    <h2>Cache Control (ms):</h2>
+    <input type="number" [value]="cacheService.cacheTimer()"
+           (change)="cacheService.updateCacheTimer(+$event.target.value)" placeholder="Time in ms" class="form-control">
 </div>

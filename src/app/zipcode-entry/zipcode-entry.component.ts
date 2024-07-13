@@ -1,5 +1,6 @@
-import {Component} from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import {LocationService} from '../location.service';
+import {CacheService, CACHETIMER} from '../cache.service';
 
 @Component({
     selector: 'app-zipcode-entry',
@@ -7,7 +8,7 @@ import {LocationService} from '../location.service';
 })
 export class ZipcodeEntryComponent {
 
-    constructor(private service: LocationService) {
+    constructor(private service: LocationService, public cacheService: CacheService) {
     }
 
     addLocation(zipcode: string) {
